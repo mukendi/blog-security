@@ -723,9 +723,10 @@
                             the disk.</p>
 
                         <div class="callout green">
-                            <div class="callout-label">Kratos Design Philosophy</div>
-                            <p>Rather than attempting to restore encrypted files (which causes race conditions and massive I/O overhead), Kratos sacrifices backup in favor of <strong>absolute prevention through digital fingerprinting</strong>. By limiting
-                                initial infection to a maximum of 5 files, Kratos captures the binary's hash to permanently immunize the system - guaranteeing 0 affected files on any re-execution attempt.</p>
+                            <div class="callout-label"></div>
+                            <p>It is with this low-layer protection in mind that the Kratos project was developed. This driver (Kratos.sys) monitors process activity by evaluating in real time the entropy of written data and suspicious renaming patterns.
+                                Kratos's technical originality lies in a significant engineering trade-off: sacrificing a traditional backup/restore system (which generates race conditions and is I/O-intensive) in favor of absolute prevention through
+                                digital fingerprinting. By limiting the initial infection to a maximum of 5 files, Kratos captures the binary's hash to permanently immunize the system, guaranteeing a score of 0 affected files during any re-execution attempt.</p>
                         </div>
 
                         <!-- ══════════════════════ LAB / HERCULES ══════════════════════ -->
