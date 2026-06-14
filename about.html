@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Simon Ngoy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@300;400;500;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html {
+            font-size: 17px;
+        }
+        
+        body {
+            font-family: 'Lora', Georgia, serif;
+            background: #fafaf8;
+            color: #1a1a1a;
+            line-height: 1.75;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+        /* ── Site Header ── */
+        
+        .site-header {
+            border-bottom: 1px solid #e5e5e0;
+            padding: 0 2rem;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: #fafaf8;
+            z-index: 100;
+        }
+        
+        .site-logo {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            color: #1a1a1a;
+            text-transform: uppercase;
+        }
+        
+        .site-nav {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .site-nav a {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 400;
+            color: #666;
+            text-decoration: none;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        
+        .site-nav a:hover {
+            color: #1a1a1a;
+        }
+        
+        .site-nav a.active {
+            color: #c0392b;
+        }
+        /* ── Layout ── */
+        
+        .page-wrap {
+            max-width: 740px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        /* ── Profile Section ── */
+        
+        .profile-section {
+            padding: 3.5rem 0 2.5rem;
+            border-bottom: 1px solid #e5e5e0;
+            margin-bottom: 2.5rem;
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+        
+        .profile-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #c0392b 0%, #8e44ad 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #fff;
+            flex-shrink: 0;
+            border: 3px solid #fafaf8;
+            box-shadow: 0 0 0 1px #e5e5e0;
+        }
+        
+        .profile-info h1 {
+            font-family: 'Lora', serif;
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #111;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.25rem;
+        }
+        
+        .profile-role {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            color: #888;
+            margin-bottom: 0.75rem;
+        }
+        
+        .profile-links {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        .profile-link {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: #555;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            border: 1px solid #e5e5e0;
+            padding: 0.25rem 0.6rem;
+            border-radius: 3px;
+            background: #f5f5f0;
+            transition: border-color 0.15s, color 0.15s;
+        }
+        
+        .profile-link:hover {
+            border-color: #c0392b;
+            color: #c0392b;
+        }
+        /* ── Section Title ── */
+        
+        .section-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-weight: 600;
+            color: #aaa;
+            margin-bottom: 1rem;
+        }
+        /* ── Body Text ── */
+        
+        .about-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        p {
+            margin-bottom: 1.15rem;
+            color: #2a2a2a;
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+        
+        strong {
+            font-weight: 600;
+            color: #111;
+        }
+        
+        em {
+            font-style: italic;
+        }
+        
+        a {
+            color: #c0392b;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            background: #f0f0eb;
+            color: #c0392b;
+            padding: 0.1em 0.35em;
+            border-radius: 3px;
+            border: 1px solid #e5e5e0;
+        }
+        
+        blockquote {
+            border-left: 3px solid #c0392b;
+            margin: 1.5rem 0;
+            padding: 0.75rem 1.25rem;
+            background: #fdf8f7;
+            font-style: italic;
+            color: #555;
+            font-size: 0.97rem;
+        }
+        
+        hr {
+            border: none;
+            border-top: 1px solid #e5e5e0;
+            margin: 2rem 0;
+        }
+        /* ── Skills Grid ── */
+        
+        .skills-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
+        }
+        
+        .skill-card {
+            border: 1px solid #e5e5e0;
+            border-radius: 4px;
+            padding: 0.9rem 1rem;
+            background: #fafaf8;
+            font-family: 'DM Sans', sans-serif;
+        }
+        
+        .skill-card-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .skill-card:nth-child(1) .skill-card-title {
+            color: #c0392b;
+        }
+        
+        .skill-card:nth-child(2) .skill-card-title {
+            color: #2980b9;
+        }
+        
+        .skill-card:nth-child(3) .skill-card-title {
+            color: #27ae60;
+        }
+        
+        .skill-card:nth-child(4) .skill-card-title {
+            color: #8e44ad;
+        }
+        
+        .skill-list {
+            list-style: none;
+            padding: 0;
+            font-size: 0.82rem;
+            color: #555;
+            line-height: 1.8;
+        }
+        
+        .skill-list li::before {
+            content: '-> ';
+            font-family: 'JetBrains Mono', monospace;
+            color: #ccc;
+            font-size: 0.7rem;
+        }
+        /* ── Tools List ── */
+        
+        .tools-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0 2rem;
+        }
+        
+        .tool-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: #555;
+            background: #f0f0eb;
+            border: 1px solid #e5e5e0;
+            padding: 0.25rem 0.65rem;
+            border-radius: 3px;
+        }
+        /* ── Timeline ── */
+        
+        .timeline {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 6px;
+            bottom: 6px;
+            width: 1px;
+            background: #e5e5e0;
+        }
+        
+        .timeline li {
+            display: flex;
+            gap: 1.25rem;
+            padding: 0 0 1.5rem 0;
+            position: relative;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+        }
+        
+        .timeline li:last-child {
+            padding-bottom: 0;
+        }
+        
+        .tl-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #fafaf8;
+            border: 2px solid #c0392b;
+            flex-shrink: 0;
+            margin-top: 0.15rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .tl-dot.grey {
+            border-color: #ddd;
+        }
+        
+        .tl-content {}
+        
+        .tl-date {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: #bbb;
+            margin-bottom: 0.15rem;
+        }
+        
+        .tl-title {
+            font-weight: 600;
+            color: #111;
+            margin-bottom: 0.2rem;
+            font-size: 0.92rem;
+        }
+        
+        .tl-desc {
+            color: #666;
+            line-height: 1.55;
+        }
+        /* ── Footer ── */
+        
+        .site-footer {
+            margin-top: 4rem;
+            padding: 2rem 1.5rem;
+            border-top: 1px solid #e5e5e0;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem;
+            color: #aaa;
+            text-align: center;
+        }
+        
+        @media (max-width: 580px) {
+            .profile-section {
+                flex-direction: column;
+                gap: 1.25rem;
+            }
+            .skills-grid {
+                grid-template-columns: 1fr;
+            }
+            .profile-info h1 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="site-header">
+        <a href="home.html" class="site-logo">Simon Ngoy</a>
+        <nav class="site-nav">
+            <a href="index.html">Home</a>
+            <a href="about.html" class="active">About</a>
+        </nav>
+    </header>
+
+    <div class="page-wrap">
+
+        <!-- Profile -->
+        <div class="profile-section">
+            <div class="profile-avatar">SN</div>
+            <div class="profile-info">
+                <h1>Simon Ngoy</h1>
+                <div class="profile-role">Security Researcher / Red Team / Windows Internals</div>
+                <div class="profile-links">
+                    <a class="profile-link" href="https://github.com/mukendi" target="_blank">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>                        GitHub
+                    </a>
+                    <a class="profile-link" href="https://www.linkedin.com/in/simon-ngoy-1a9371103" target="_blank">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>                        LinkedIn
+                    </a>
+                    <a class="profile-link" href="mailto:ngoymukendix@gmail.com">
+          ✉ contact
+        </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- About -->
+        <div class="about-section">
+            <div class="section-title">About</div>
+
+            <p>
+                I'm a security researcher focused on <span>Windows internals</span>, <span>Red Teaming</span>, and <span>Hypervisor architecture</span> . My work sits at the intersection of low-level systems research and offensive security-diving into
+                VMX operations to understand how Windows works at its core, finding and exploiting the gaps from Ring 0 down to Ring -1.
+            </p>
+        </div>
+
+        <hr>
+
+
+
+
+        <!-- Tools -->
+        <div class="about-section">
+            <div class="section-title">Tools &amp; Technologies</div>
+            <div class="tools-row">
+                <span class="tool-badge">WinDbg</span>
+                <span class="tool-badge">IDA Pro</span>
+                <span class="tool-badge">Ghidra</span>
+                <span class="tool-badge">x64dbg</span>
+                <span class="tool-badge">C / C++</span>
+                <span class="tool-badge">Python</span>
+                <span class="tool-badge">Rust</span>
+                <span class="tool-badge">Windows Internals</span>
+                <span class="tool-badge">Vulnerable Research</span>
+                <span class="tool-badge">Maldev</span>
+                <span class="tool-badge">Cobalstrike</span>
+                <span class="tool-badge">Hypervisor</span>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- Timeline -->
+
+        <hr>
+
+        <!-- Contact -->
+        <div class="about-section">
+            <div class="section-title">Contact</div>
+            <p>
+                For research collaborations, responsible disclosure, or general questions, reach out via
+                <a href="mailto:ngoymukendix@gmail.com">email</a> or
+                <a href="https://linkedin.com/" target="_blank">LinkedIn</a>. I'm always interested in discussing Windows internals, kernel exploitation research, and offensive security topics.
+            </p>
+            <p>
+                <em>All research published on this blog is conducted in controlled environments for
+      educational and defensive security purposes.</em>
+            </p>
+        </div>
+
+    </div>
+
+    <footer class="site-footer">
+        Simon Ngoy : Security Researcher / Red Team / Windows Internals
+    </footer>
+
+</body>
+
+</html>
