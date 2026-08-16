@@ -291,13 +291,13 @@ BYOVD has emerged as the dominant mechanism for this neutralization phase. Rathe
 </ul>
 <p>The price of commoditized EDR killer tools on criminal forums reached as low as $70 for multi-vendor compatibility in 2024.</p>
 <h3 id="13-the-research-gap">1.3 The Research Gap</h3>
-<p>Malgré les avancées significatives dans l'interception des attaques BYOVD (Bring Your Own Vulnerable Driver), une limite structurelle persiste au sein des travaux publiés et des solutions industrielles : l'absence de mécanismes de résilience de l'infrastructure de détection dès lors qu'un adversaire obtient des privilèges d'exécution en Ring 0 (kernel mode).
-Les approches conventionnelles se focalisent sur la détection préventive ou l'interception de la phase d'exploitation BYOVD. Néanmoins, la problématique du maintien d'une visibilité sécuritaire - une fois les hooks ou callbacks principaux neutralisés par altération directe des structures du noyau (DKOM) - demeure insuffisamment adressée.
-Plutôt que de se substituer aux moteurs de détection existants, cette étude propose une architecture complémentaire dédiée à la résilience de la télémesure noyau. Elle vise à garantir une persistance de l'observation face à un adversaire privilégié, en s'appuyant sur trois principes directeurs :</p>
+<p>Despite significant advances in intercepting BYOVD (Bring Your Own Vulnerable Driver) attacks, a structural limitation persists in published work and industrial solutions: the lack of resilience mechanisms for the detection infrastructure once an adversary gains Ring 0 (kernel mode) execution privileges.
+Conventional approaches focus on preemptive detection or interception of the BYOVD exploitation phase. However, the issue of maintaining secure visibility—once the main hooks or callbacks have been neutralized by direct alteration of kernel structures (DKOM)—remains insufficiently addressed.
+Rather than replacing existing detection engines, this study proposes a complementary architecture dedicated to kernel telemetry resilience. It aims to guarantee persistent observation against a privileged adversary, based on three guiding principles:</p>
 <ol>
-<li>L’exploitation de l’asymétrie d’information : transformer l'incertitude de l'adversaire quant à la topologie des capteurs secondaires en un levier défensif.</li>
-<li>La détection par rupture de télémesure : formaliser le principe selon lequel l'absence ou le gel anormal d'un flux de signaux attendu constitue, en soi, un indicateur de compromission prioritaire.</li>
-<li>Le découplage de la surface d'attaque : assurer la tolérance aux pannes du système d'alerte en adossant la détection à des sources de signaux autonomes, isolées du vecteur de défaillance du capteur principal.</li>
+<li>Exploiting information asymmetry: transforming the adversary's uncertainty regarding the topology of secondary sensors into a defensive lever.</li>
+<li>Telemetry break detection: formalizing the principle that the absence or abnormal freezing of an expected signal flow constitutes, in itself, a priority indicator of compromise.</li>
+<li>Decoupling the attack surface: ensuring fault tolerance of the warning system by basing detection on autonomous signal sources, isolated from the failure vector of the main sensor.</li>
 </ol>
 <hr>
 <h2 id="2-related-work">2. Related Work</h2>
