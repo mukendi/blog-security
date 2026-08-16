@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KratosEDR - Defending the Defender: A Distributed Canary Architecture for Resilient EDR Sensors Against BYOVD</title>
+
+<style>
+  :root {
+    --bg-color: #0d1117;
+    --text-color: #c9d1d9;
+    --heading-color: #f0f6fc;
+    --link-color: #58a6ff;
+    --border-color: #30363d;
+    --code-bg: #161b22;
+    --code-color: #e6edf3;
+    --blockquote-border: #30363d;
+    --table-border: #30363d;
+    --table-stripe: #161b22;
+  }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    word-wrap: break-word;
+  }
+
+  h1, h2, h3, h4 {
+    color: var(--heading-color);
+    font-weight: 600;
+    margin-top: 32px;
+    margin-bottom: 16px;
+  }
+
+  h1 { 
+    font-size: 2rem; 
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    border-bottom: none; 
+    padding-bottom: 0; 
+  }
+
+  h2 { 
+    font-size: 1.5em; 
+    border-bottom: 1px solid var(--border-color); 
+    padding-bottom: 0.3em; 
+  }
+
+  h3 { 
+    font-size: 1.25em; 
+  }
+
+  a { 
+    color: var(--link-color); 
+    text-decoration: none; 
+  }
+
+  a:hover { 
+    text-decoration: underline; 
+  }
+
+  hr { 
+    border: 0; 
+    height: 1px; 
+    background: var(--border-color); 
+    margin: 30px 0; 
+  }
+
+  ul, ol { 
+    padding-left: 2em; 
+  }
+
+  li { 
+    margin-bottom: 0.5em; 
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+  }
+
+  th, td {
+    border: 1px solid var(--table-border);
+    padding: 8px 12px;
+    text-align: left;
+  }
+
+  th {
+    background-color: var(--code-bg);
+    color: var(--heading-color);
+  }
+
+  tr:nth-child(even) {
+    background-color: var(--table-stripe);
+  }
+
+  blockquote {
+    margin: 0 0 20px 0;
+    padding: 0 1em;
+    color: #8b949e;
+    border-left: 0.25em solid var(--blockquote-border);
+  }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+    font-size: 85%;
+    padding: 0.2em 0.4em;
+    margin: 0;
+    background-color: rgba(110,118,129,0.4);
+    border-radius: 6px;
+  }
+
+  pre {
+    background-color: var(--code-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+  }
+
+  pre code {
+    background-color: transparent;
+    padding: 0;
+    color: var(--code-color);
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 20px auto;
+    border-radius: 6px;
+  }
+
+  /* Syntax Highlighting */
+  .hljs-comment, .hljs-quote { color: #8b949e; font-style: italic; }
+  .hljs-variable, .hljs-template-variable, .hljs-tag, .hljs-name, .hljs-selector-id, .hljs-selector-class, .hljs-regexp, .hljs-deletion { color: #ff7b72; }
+  .hljs-number, .hljs-built_in, .hljs-builtin-name, .hljs-literal, .hljs-type, .hljs-params, .hljs-meta, .hljs-link { color: #79c0ff; }
+  .hljs-attribute { color: #d2a8ff; }
+  .hljs-string, .hljs-symbol, .hljs-bullet, .hljs-addition { color: #a5d6ff; }
+  .hljs-title, .hljs-section { color: #d2a8ff; font-weight: bold; }
+  .hljs-keyword, .hljs-selector-tag { color: #ff7b72; }
+  .hljs-emphasis { font-style: italic; }
+  .hljs-strong { font-weight: bold; }
+
+  /* ── Site Header ── */
+  #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: 0%;
+      background: #58a6ff;
+      z-index: 999;
+      transition: width 0.1s linear;
+  }
+  .site-header {
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 2rem;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--bg-color);
+      z-index: 100;
+  }
+  .site-logo {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      color: var(--heading-color);
+      text-transform: uppercase;
+  }
+  .site-nav {
+      display: flex;
+      gap: 2rem;
+  }
+  .site-nav a {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 0.82rem;
+      font-weight: 400;
+      color: #8b949e;
+      text-decoration: none;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+  }
+  .site-nav a:hover {
+      color: var(--heading-color);
+  }
+  .site-nav a.active {
+      color: var(--link-color);
+  }
+
+  /* ── Article Meta ── */
+  .article-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+  }
+  .author-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #58a6ff, #d2a8ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-weight: 700;
+      font-size: 0.75rem;
+      color: #fff;
+      flex-shrink: 0;
+  }
+  .author-info {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 0.85rem;
+      color: #8b949e;
+  }
+  .author-info strong {
+      color: #f0f6fc;
+      font-weight: 500;
+  }
+  .meta-sep {
+      color: #8b949e;
+      margin: 0 0.25rem;
+  }
+
+  /* ── Footer ── */
+  .site-footer {
+      margin-top: 4rem;
+      padding: 2rem 1.5rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: #8b949e;
+      text-align: center;
+  }
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <div id="progress-bar"></div>
+  <header class="site-header">
+      <a href="./index.html" class="site-logo">Simon Ngoy</a>
+      <nav class="site-nav">
+          <a href="./index.html">Home</a>
+          <a href="./about.html">About</a>
+      </nav>
+  </header>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark'
+    });
+  </script>
+
+<h1 id="kratosedr---defending-the-defender-a-distributed-canary-architecture-for-resilient-edr-sensors-against-byovd">KratosEDR - Defending the Defender: A Distributed Canary Architecture for Resilient EDR Sensors Against BYOVD</h1>
+<div class="article-meta">
+    <div class="author-avatar">SN</div>
+    <div class="author-info">
+        <strong>Simon Ngoy</strong> <span class="meta-sep">·</span> Security Researcher <span class="meta-sep">·</span> Red Team / Windows Internals
+    </div>
+</div>
+<h2 id="1-introduction">1. Introduction</h2>
+<h3 id="11-the-edr-blinding-problem">1.1 The EDR Blinding Problem</h3>
+<p>Modern ransomware operations follow a consistent pre-encryption playbook: establish initial access, escalate privileges, perform lateral movement, and, most importantly, neutralize endpoint security before deploying the encryption payload. This neutralization step has evolved from crude process termination attempts to a sophisticated kernel-mode operation that systematically dismantles the monitoring infrastructure of commercial EDR products.
+BYOVD has emerged as the dominant mechanism for this neutralization phase. Rather than developing new kernel exploits, malicious actors exploit legitimately signed drivers that contain memory access vulnerabilities, using them as proxies to obtain kernel-mode primitives: arbitrary physical memory read/write access, MSR access, direct I/O on ports, or privileged process descriptors. Once such a primitive is obtained, the adversary can remove kernel callbacks, unregister minifilters, patch ETW providers, or terminate EDR processes with kernel-level authority. We have two categories of BYOVD, type 1 which consists of exploiting a driver that exposes the ZwTerminateProcess API without an effective control mechanism to kill the processes of security solutions, and type 2 which exploits the write and read primitives offered by legitimate drivers to neutralize EDR/AV.</p>
+<h3 id="12-observed-threat-landscape">1.2 Observed Threat Landscape</h3>
+<p>The commoditization of BYOVD tooling is extensively documented:</p>
+<ul>
+<li><strong>CrowdStrike (2024)</strong> documented Scattered Spider exploiting CVE-2015-2291 via iqvw64.sys. Falcon encountered six distinct vulnerable drivers in a single intrusion. BlackCat ransomware operations used Spyboy's Terminator tool targeting zamguard64.sys.</li>
+<li><strong>Palo Alto Unit 42 (2024)</strong> documented an intrusion where the adversary installed Cortex XDR on a rogue VM connected to the victim network to test BYOVD bypass tools against the exact sensor version deployed - empirically confirming the reconnaissance behavior described in this paper's threat model.</li>
+<li><strong>ESET (2026)</strong> documented GentleKiller with eight distinct variants impersonating legitimate software while deploying different vulnerable drivers, targeting 400+ security processes across 48 products. The framework supports runtime driver swapping to bypass blocklist updates.</li>
+<li><strong>Sophos (2025)</strong> documented RansomHub deploying EDR killers packed with HeartCrypt using drivers signed with compromised certificates.</li>
+<li><strong>Cisco Talos (2025)</strong> recorded a 23% quarter-over-quarter increase in BYOVD-assisted intrusions in Q2 2024, with approximately 25% of ransomware incidents incorporating BYOVD.</li>
+</ul>
+<p>The price of commoditized EDR killer tools on criminal forums reached as low as $70 for multi-vendor compatibility in 2024.</p>
+<h3 id="13-the-research-gap">1.3 The Research Gap</h3>
+<p>Malgré les avancées significatives dans l'interception des attaques BYOVD (Bring Your Own Vulnerable Driver), une limite structurelle persiste au sein des travaux publiés et des solutions industrielles : l'absence de mécanismes de résilience de l'infrastructure de détection dès lors qu'un adversaire obtient des privilèges d'exécution en Ring 0 (kernel mode).
+Les approches conventionnelles se focalisent sur la détection préventive ou l'interception de la phase d'exploitation BYOVD. Néanmoins, la problématique du maintien d'une visibilité sécuritaire - une fois les hooks ou callbacks principaux neutralisés par altération directe des structures du noyau (DKOM) - demeure insuffisamment adressée.
+Plutôt que de se substituer aux moteurs de détection existants, cette étude propose une architecture complémentaire dédiée à la résilience de la télémesure noyau. Elle vise à garantir une persistance de l'observation face à un adversaire privilégié, en s'appuyant sur trois principes directeurs :</p>
+<ol>
+<li>L’exploitation de l’asymétrie d’information : transformer l'incertitude de l'adversaire quant à la topologie des capteurs secondaires en un levier défensif.</li>
+<li>La détection par rupture de télémesure : formaliser le principe selon lequel l'absence ou le gel anormal d'un flux de signaux attendu constitue, en soi, un indicateur de compromission prioritaire.</li>
+<li>Le découplage de la surface d'attaque : assurer la tolérance aux pannes du système d'alerte en adossant la détection à des sources de signaux autonomes, isolées du vecteur de défaillance du capteur principal.</li>
+</ol>
+<hr>
+<h2 id="2-related-work">2. Related Work</h2>
+<h3 id="21-microsoft-vulnerable-driver-blocklist">2.1 Microsoft Vulnerable Driver Blocklist</h3>
+<p>Microsoft maintains a kernel-mode driver blocklist enforced through WDAC and HVCI. The structural limitation is well-documented: during the TrueSight.sys campaign (mid-2024 to early 2025), adversaries deployed over 2,500 distinct driver variants, rendering hash-based blocklisting insufficient as a primary defense.</p>
+<h3 id="22-hvci-and-kernel-data-protection">2.2 HVCI and Kernel Data Protection</h3>
+<p>HVCI enforces kernel code integrity through SLAT manipulation. KDP extends this to data pages via <code>MmProtectDriverSection</code> and <code>ExAllocatePool3</code>. However, KDP protects only explicitly registered structures against direct memory corruption. It does not prevent an adversary from calling documented APIs to remove callbacks or unregister filters - operations that corrupt no protected memory but exercise legitimate kernel functionality with illegitimately obtained privileges.</p>
+<p>Furthermore, VBS availability varies significantly across enterprise fleets. KratosEDR provides full detection capability without any VBS dependency.</p>
+<h3 id="23-behavioral-detection">2.3 Behavioral Detection</h3>
+<p>Commercial EDR products implement behavioral detection through kernel callbacks and ETW providers. These mechanisms share a fundamental structural weakness: they reside in VTL0 kernel space alongside the adversary's BYOVD tool, exposing them to the same primitives used to obtain Ring 0 access. Adversarial tools (EDRSandBlast, Terminator, GentleKiller) specifically enumerate and target these callback registrations.</p>
+<h3 id="24-the-missing-layer">2.4 The Missing Layer</h3>
+<p>A review of published research reveals no formal treatment of two problems KratosEDR addresses: (1) post-compromise sensor resilience when callbacks are being actively suppressed, and (2) detection of sequential attack strategies that target monitoring components before the primary EDR sensor.</p>
+<hr>
+<h2 id="3-threat-model">3. Threat Model</h2>
+<h3 id="31-adversary-capabilities-in-scope">3.1 Adversary Capabilities (In Scope)</h3>
+<p>KratosEDR assumes an adversary who:</p>
+<ul>
+<li>Has obtained <strong>local administrator privileges</strong> through prior exploitation.</li>
+<li>Successfully loads a <strong>legitimately signed but vulnerable driver</strong> via <code>NtLoadDriver</code>.</li>
+<li>Obtains a <strong>kernel primitive</strong>: arbitrary physical memory R/W, MSR R/W, or privileged process handle.</li>
+<li>Uses this primitive to <strong>suppress EDR monitoring</strong>: removing callbacks, unregistering minifilters, patching ETW providers, or terminating EDR processes.</li>
+<li><strong>Operates in an environment they do not own</strong> - lacking a priori knowledge of deployed security components, their configurations, version-specific offsets, or baseline behavioral patterns.</li>
+<li>May attempt to <strong>neutralize monitoring canaries before targeting the EDR</strong> (sequencing attack).</li>
+</ul>
+<h3 id="32-the-adversary-information-asymmetry">3.2 The Adversary Information Asymmetry</h3>
+<p>A formally under-characterized adversary constraint: <em>the adversary has Ring 0 access but does not own the environment.</em> This has concrete security implications:</p>
+<ul>
+<li>They cannot distinguish security canary drivers from legitimate OEM drivers without active reconnaissance.</li>
+<li>Active reconnaissance generates observable signals (driver enumeration, IOCTL probing, registry scanning).</li>
+<li>The time required for reliable reconnaissance is time the detection system uses.</li>
+<li>Every attack sequence - neutralize EDR first, neutralize canaries first, or attempt both simultaneously - triggers a different detection signal.</li>
+</ul>
+<p>KratosEDR explicitly exploits this asymmetry.</p>
+<h3 id="33-attack-sequencing-dilemma">3.3 Attack Sequencing Dilemma</h3>
+<p>The bidirectional surveillance mechanism creates a strategic dilemma for the adversary:</p>
+<pre class="hljs"><code><div>Strategy A - Neutralize EDR first:
+    -&gt; Canaries detect via Signal A/B/C -&gt; consensus alert
+
+Strategy B - Neutralize canaries first:
+    -&gt; DetectorOne detects via CanaryMonitorThread -&gt; immediate alert
+
+Strategy C - Neutralize both simultaneously:
+    -&gt; Requires perfect coordination on unknown targets
+    -&gt; Temporally incompatible with commoditized BYOVD tools
+    -&gt; Incompatible with operational tempo requirements
+</div></code></pre>
+<p>No silent attack sequence exists.</p>
+<hr>
+<h2 id="4-security-objectives">4. Security Objectives</h2>
+<p><strong>SO-1: Preserve Minimum Observability</strong>
+Maintain at least one active telemetry channel even after primary EDR callbacks are suppressed.</p>
+<p><strong>SO-2: Detect Neutralization Attempts</strong>
+Detect within a bounded time window that an adversary is suppressing monitoring capabilities, whether targeting the EDR directly or the canaries first.</p>
+<p><strong>SO-3: Block Known-Dangerous Driver Patterns Pre-Load</strong>
+Prevent process-killer and dangerous-combination drivers from loading entirely when their capability profile is identifiable from on-disk IAT analysis.</p>
+<p><strong>SO-4: Preserve Evidence</strong>
+Capture sufficient forensic context (driver identity, load timestamp, risk profile, callback state, timeline) upon detection.</p>
+<p><strong>SO-5: Minimize False Positives</strong>
+Require corroboration from multiple independent signal sources and multiple canary instances before generating an alert.</p>
+<p><strong>SO-6: Hardware Independence</strong>
+Full detection capability on Windows 10/11 without VBS, HVCI, TPM, or specific CPU features.</p>
+<hr>
+<h2 id="5-architecture">5. Architecture</h2>
+<h3 id="51-high-level-overview">5.1 High-Level Overview</h3>
+<p><img src="img/schema.png" alt="alt text"></p>
+<h3 id="52-detectorone">5.2 DetectorOne</h3>
+<p>DetectorOne is the primary sensor component registering four kernel callbacks:</p>
+<ul>
+<li><code>PsSetCreateProcessNotifyRoutineEx</code> - process creation/termination</li>
+<li><code>PsSetCreateThreadNotifyRoutine</code> - thread creation/termination</li>
+<li><code>PsSetLoadImageNotifyRoutine</code> - module load events (kernel + user)</li>
+<li><code>CmRegisterCallbackEx</code> - registry pre-operation interception</li>
+</ul>
+<p>Two atomic 64-bit liveness counters (<code>g_ProcessEventCounter</code>, <code>g_ImageEventCounter</code>) are incremented on each callback invocation and exported to canary drivers.</p>
+<p>DetectorOne exposes <code>\Device\KratosEDR</code> implementing <code>IOCTL_KRATOS_REGISTER</code>, through which canaries receive: the shared table pointer, DetectorOne's callback function addresses (baseline for Signal A), and liveness counter pointers (baseline for Signal B).</p>
+<h3 id="53-iat-analysis-engine">5.3 IAT Analysis Engine</h3>
+<p>On each kernel driver load notification, the engine:</p>
+<ol>
+<li>Validates PE headers (DOS signature, NT signature, Optional Header magic).</li>
+<li>Iterates the Import Directory, parsing all <code>IMAGE_IMPORT_DESCRIPTOR</code> entries.</li>
+<li>For each named import, queries a capability table mapping functions to risk weights and flags.</li>
+<li>Computes a composite risk score with category weights and combination bonuses.</li>
+</ol>
+<pre class="hljs"><code><div>Risk Score = (MemoryAccess × 2) + (ProcessInteraction × 2) +
+             (KernelManipulation × 3) + (CallbackInteraction × 3) +
+             DangerousTotal + CombinationBonus
+</div></code></pre>
+<p><strong>Combination bonuses</strong> for patterns co-occurring in known BYOVD tooling:</p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Bonus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ZwOpenProcess + ZwTerminateProcess</td>
+<td>+100</td>
+</tr>
+<tr>
+<td>ProcessEnum + Open + Terminate</td>
+<td>+150</td>
+</tr>
+<tr>
+<td>PhysicalMemory + ZwTerminateProcess</td>
+<td>+120</td>
+</tr>
+<tr>
+<td>CallbackRemoval + ZwTerminateProcess</td>
+<td>+130</td>
+</tr>
+<tr>
+<td>Terminate + CallbackRemoval + MemoryAccess</td>
+<td>+200</td>
+</tr>
+<tr>
+<td>MSR Access + ZwTerminateProcess</td>
+<td>+140</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Empirical results from validation testing:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Driver</th>
+<th>Key Imports</th>
+<th>Risk Score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>winio.sys</td>
+<td>MmGetPhysicalAddress + ZwMapViewOfSection</td>
+<td>135</td>
+</tr>
+<tr>
+<td>k7rkscan.sys</td>
+<td>ZwTerminateProcess + MmMapLockedPagesSpecifyCache</td>
+<td>315</td>
+</tr>
+</tbody>
+</table>
+<h3 id="54-primitive-classifier-and-pre-load-blocking">5.4 Primitive Classifier and Pre-Load Blocking</h3>
+<p>Following IAT scoring, each driver is classified into a primitive category:</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Condition</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PROCESS_KILLER</td>
+<td>ZwTerminateProcess, no physical memory</td>
+<td><strong>Block at ImagePath write</strong></td>
+</tr>
+<tr>
+<td>MSR_PORT_IO</td>
+<td>MSR or port I/O access</td>
+<td>Canary alert dispatch</td>
+</tr>
+<tr>
+<td>PHYSICAL_MEMORY</td>
+<td>MmMapIoSpace or MmGetPhysicalAddress + ZwMapViewOfSection</td>
+<td>Canary alert dispatch</td>
+</tr>
+<tr>
+<td>ARBITRARY_RW</td>
+<td>ZwMapViewOfSection + memory access</td>
+<td>Canary alert dispatch</td>
+</tr>
+<tr>
+<td>COMBO</td>
+<td>Multiple categories</td>
+<td><strong>Block + Canary dispatch</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Pre-load blocking</strong> is implemented in <code>CmRegisterCallback</code> at <code>RegNtPreSetValueKey</code> for <code>ImagePath</code> values. When the on-disk binary analysis classifies the driver as PROCESS_KILLER or COMBO, the callback returns <code>STATUS_ACCESS_DENIED</code>, preventing the registry write. The subsequent <code>NtLoadDriver</code> call fails because <code>ImagePath</code> was never written.</p>
+<p>This is the earliest feasible interception point - the binary is readable on disk, no code has executed, no kernel primitive has been obtained.</p>
+<h3 id="55-bootstrap-context-and-shutdown-coordination">5.5 Bootstrap Context and Shutdown Coordination</h3>
+<p><strong>Bootstrap sequence:</strong></p>
+<pre class="hljs"><code><div>T=0   DetectorOne DriverEntry
+      -&gt; Register 4 callbacks
+      -&gt; Pre-fill callback baseline in shared table
+      -&gt; Allocate KRATOS_CANARY_TABLE (non-paged pool)
+      -&gt; ZwLoadDriver × 3 (canaries load sequentially)
+
+T~0.2s  Each canary: DriverEntry -&gt; IOCTL_KRATOS_REGISTER
+        -&gt; Receive: table pointer + callback addresses + counter pointers
+        -&gt; Verify callbacks present in kernel tables (Signal A baseline)
+        -&gt; Start 3 surveillance threads
+
+T~0.7s  DetectorOne: all canaries registered
+        -&gt; Recalculate quorum based on actual registrations
+        -&gt; Set HandoffComplete = 1 -&gt; P2P mode active
+</div></code></pre>
+<p><strong>From the validation dump:</strong></p>
+<pre class="hljs"><code><div>[DetectorOne] Bootstrap: all canaries registered Count=3
+[DetectorOne] Handoff complete: Canaries=3 Quorum=2 - P2P mode active
+[DetectorOne] Loaded
+</div></code></pre>
+<p>Total bootstrap time: <strong>&lt; 1 second</strong>.</p>
+<p><strong>Shutdown sequence (prevents BSOD on DetectorOne unload):</strong></p>
+<pre class="hljs"><code><div>DetectorOne unload requested
+    -&gt; Set ShutdownPending = 1 in shared table
+    -&gt; Wait 200ms (threads observe flag and exit loops)
+    -&gt; ZwUnloadDriver(amdv_chip) - synchronous, blocks until CanaryUnload returns
+    -&gt; ZwUnloadDriver(intelv_mei) - synchronous
+    -&gt; ZwUnloadDriver(realtekv) - synchronous
+    -&gt; All canaries confirmed stopped
+    -&gt; Release callbacks, device object, shared table
+    -&gt; Unload
+</div></code></pre>
+<h3 id="56-canarymesh---design-principles">5.6 CanaryMesh - Design Principles</h3>
+<p>Each canary driver is compiled from a single source with a per-instance <code>CANARY_ID</code> preprocessor define. Names are chosen to resemble legitimate OEM drivers (<code>realtekv</code>, <code>intelv_mei</code>, <code>amdv_chip</code>) to increase adversarial reconnaissance cost.</p>
+<p><strong>Critical invariant: canary drivers register in no kernel callback array.</strong> They do not call <code>PsSetCreateProcessNotifyRoutineEx</code>, <code>PsSetLoadImageNotifyRoutine</code>, or any system callback registration. They are invisible in the enumerable callback tables that EDR-blinding tools target.</p>
+<p>Each canary runs three independent system threads:</p>
+<p><strong>Thread 1 - Heartbeat (P2P Peer Monitoring)</strong>
+Every 2 seconds, updates its own heartbeat timestamp and reads peer timestamps. Peers with no heartbeat for 6+ seconds are marked DEAD. If alive count drops below quorum, a QUORUM_LOST vote is cast.</p>
+<p><strong>Thread 2 - Driver Watch (Signal C)</strong>
+Waits on an alert event. When activated, polls <code>SuspectDriverStillLoaded</code> flag (maintained by DetectorOne) every 1.5 seconds. Driver disappearance within 30 seconds generates ALERT_DRIVER_UNLOADED_FAST.</p>
+<p><strong>Thread 3 - Callback Watch (Signal A + Signal B)</strong>
+Waits on alert event. When activated, alternates between pointer verification (Signal A) and liveness monitoring (Signal B) every 2 seconds.</p>
+<h3 id="57-signal-a---callback-pointer-verification">5.7 Signal A - Callback Pointer Verification</h3>
+<p>Signal A verifies DetectorOne's callback function addresses remain present in kernel callback tables.</p>
+<p><strong>Implementation:</strong></p>
+<ol>
+<li>
+<p>Locate callback tables via disassembly of exported functions (<code>PsSetCreateProcessNotifyRoutineEx</code>, <code>PsSetLoadImageNotifyRoutine</code>, <code>PsSetCreateThreadNotifyRoutine</code>), following <code>LEA RCX/RAX, [RIP+disp32]</code> opcodes.</p>
+</li>
+<li>
+<p>Iterate tables (64 entries each), strip bit 0 (presence flag) from each entry to obtain <code>EX_CALLBACK_ROUTINE_BLOCK*</code>.</p>
+</li>
+<li>
+<p>Dereference at offset +8 (<code>block-&gt;Function</code>) to obtain the stored function address.</p>
+</li>
+<li>
+<p>Compare against DetectorOne's known callback addresses.</p>
+</li>
+</ol>
+<p><strong>From validation dump (baseline establishment):</strong></p>
+<pre class="hljs"><code><div>[CanaryMesh] Callback table from PsSetCreateProcessNotifyRoutineEx
+             at FFFFF8037F105880 contains FFFFF80315CF1740 
+[CanaryMesh] Callback table from PsSetLoadImageNotifyRoutine
+             at FFFFF8037F105680 contains FFFFF80315CF20F0 
+[CanaryMesh] Callback table from PsSetCreateThreadNotifyRoutine
+             at FFFFF8037F105480 contains FFFFF80315CF1950 
+[CanaryMesh3] Signal A baselines: Process=1 Image=1 Thread=1
+</div></code></pre>
+<p>All three callbacks verified across three distinct kernel tables.</p>
+<h3 id="58-signal-b---liveness-counter-monitoring">5.8 Signal B - Liveness Counter Monitoring</h3>
+<p>Signal B verifies callbacks are still <em>invoked</em>, not merely registered. An adversary replacing a callback pointer with a no-op stub would defeat Signal A but not Signal B.</p>
+<p>At alert activation, canaries capture baseline values of <code>g_ProcessEventCounter</code> and <code>g_ImageEventCounter</code>. If both show zero delta over a 10-second window while the machine is active, callbacks are no longer being invoked.</p>
+<p><strong>From validation dump:</strong></p>
+<pre class="hljs"><code><div>[CanaryMesh1] Baseline: ProcessEvents=18 ImageEvents=1
+[CanaryMesh1] Liveness OK ElapsedMs=60018 ProcessDelta=33 ImageDelta=0
+</div></code></pre>
+<p><strong>Key fix:</strong> Baseline is updated only when delta &gt; 0, allowing the 10-second window to accumulate correctly without resetting on quiet polling cycles.</p>
+<p><strong>Signal B+ variant:</strong> If liveness freeze is detected while the suspect driver remains loaded, ALERT_DRIVER_LOADED_CALLBACKS_DEAD is issued - indicating a persistent attack where the driver stays resident while callbacks are silenced.</p>
+<h3 id="59-signal-c---driver-lifecycle-monitoring">5.9 Signal C - Driver Lifecycle Monitoring</h3>
+<p>Rather than directly polling <code>PsLoadedModuleList</code> (which caused deadlocks with <code>MmUnloadSystemImage</code> when using blocking acquisition), Signal C uses a <strong>flag-based approach</strong>: DetectorOne maintains <code>SuspectDriverStillLoaded</code> in the shared table, updated via its own <code>LoadImageNotifyRoutine</code> callback (using <code>ImageSize == 0</code> notifications for unload detection).</p>
+<p>Canaries read this flag atomically - zero contention, zero deadlock risk.</p>
+<h3 id="510-p2p-consensus-mechanism">5.10 P2P Consensus Mechanism</h3>
+<pre class="hljs"><code><div>Quorum(N) = ⌊N/2⌋ + 1
+
+N=3 -&gt; Quorum=2 (1 canary can be neutralized, system still decides)
+N=4 -&gt; Quorum=3
+N=5 -&gt; Quorum=3 (2 canaries can be neutralized)
+</div></code></pre>
+<p>Votes are cast via <code>InterlockedIncrement</code> on <code>AlertVotes</code>. The first canary to observe <code>AlertVotes ≥ Quorum</code> acquires the consensus lock via <code>InterlockedCompareExchange</code> and emits the collegial alert. Per-canary <code>HasVotedThisRound</code> flags prevent duplicate votes within a single alert cycle.</p>
+<h3 id="511-bidirectional-surveillance---canary-monitor-thread">5.11 Bidirectional Surveillance - Canary Monitor Thread</h3>
+<p>This component, unique to KratosEDR v2.0, runs inside DetectorOne and monitors canary health. It operates in two modes:</p>
+<p><strong>Normal mode (5-second polling):</strong> Checks canary heartbeat timestamps and presence in <code>PsLoadedModuleList</code>. Logs anomalies without alerting.</p>
+<p><strong>Alert mode (1-second polling):</strong> Activated immediately when a High Risk driver is detected. Takes a snapshot of canary health at T=0. Any canary disappearing or freezing after this snapshot - while a suspect driver is loaded - triggers an immediate ALERT_PREEMPTIVE_CANARY_KILL without requiring consensus.</p>
+<pre class="hljs"><code><div><span class="hljs-comment">// When a canary falls during alert phase:</span>
+[DetectorOne] *** CANARY KILL DETECTED DURING ALERT PHASE ***
+[DetectorOne]   Pattern: ATTACKER TARGETING CANARIES FIRST
+[DetectorOne]   Immediate alert - no consensus required
+</div></code></pre>
+<p>This alert is emitted by DetectorOne directly, bypassing the canary consensus mechanism (which may be compromised at this point).</p>
+<hr>
+<h2 id="6-proactive-detection">6. Proactive Detection</h2>
+<h3 id="61-iat-scoring-as-capability-assessment">6.1 IAT Scoring as Capability Assessment</h3>
+<p>The IAT scoring engine assesses <em>what the driver can do</em>, not whether it is malicious. A hardware monitoring driver legitimately importing <code>MmMapIoSpace</code> should not be flagged in isolation - context is essential.</p>
+<p><strong>Multi-dimensional scoring components:</strong></p>
+<ul>
+<li><strong>Technical</strong>: imported functions and their combinations</li>
+<li><strong>Identity</strong>: certificate status (valid/expired/revoked), hash against LOLDrivers database</li>
+<li><strong>Context</strong>: loader process (services.exe from System32 is low-risk; cmd.exe from %TEMP% is critical), parent process chain, session</li>
+<li><strong>Behavioral</strong>: driver lifecycle pattern, IOCTL activity, timing relative to process events</li>
+</ul>
+<h3 id="62-pre-load-blocking-at-registry-level">6.2 Pre-Load Blocking at Registry Level</h3>
+<p>The <code>CmRegisterCallback</code> intercept at <code>RegNtPreSetValueKey</code> for <code>ImagePath</code> values is the earliest defensible blocking point:</p>
+<pre class="hljs"><code><div>services.exe writes ImagePath = \...\k7rkscan.sys
+    -&gt; CmRegisterCallback: RegNtPreSetValueKey
+    -&gt; Read binary from disk
+    -&gt; Analyze IAT: ZwTerminateProcess=1, MmMapIoSpace=0
+    -&gt; Classify: PROCESS_KILLER
+    -&gt; Return STATUS_ACCESS_DENIED
+    -&gt; ImagePath never written
+    -&gt; NtLoadDriver fails: STATUS_OBJECT_NAME_NOT_FOUND
+    -&gt; Driver never executes a single instruction
+</div></code></pre>
+<p><strong>From validation dump:</strong></p>
+<pre class="hljs"><code><div>[DetectorOne] Pre-load check: Key=\REGISTRY\...\Services\k7rkscan
+              ImagePath=\SystemRoot\System32\drivers\k7rkscan.sys
+[DetectorOne] Pre-load IAT analysis: Risk=315 ZwTerminate=1
+[DetectorOne] *** BLOCKING DRIVER LOAD ***
+              Reason: ZwTerminateProcess without physical memory primitive
+              Category: 3 (PROCESS_KILLER)
+</div></code></pre>
+<p>For winio.sys (PHYSICAL_MEMORY category), pre-load blocking is not applied - the driver is allowed to load while canaries are activated for full monitoring.</p>
+<hr>
+<h2 id="7-reactive-detection">7. Reactive Detection</h2>
+<h3 id="71-canary-activation-model">7.1 Canary Activation Model</h3>
+<p><strong>Idle state:</strong> Only heartbeat thread active, consuming negligible resources.</p>
+<p><strong>Alert state:</strong> All three threads active, polling at maximum frequency. Activated by DetectorOne calling <code>CanaryReceiveAlert</code> with driver name, load timestamp, and risk score.</p>
+<p><strong>Alert mode (DetectorOne):</strong> <code>CanaryMonitorThread</code> switches from 5-second to 1-second polling, takes canary health snapshot.</p>
+<h3 id="72-signal-independence-and-adversarial-coverage">7.2 Signal Independence and Adversarial Coverage</h3>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Adversarial Behavior Detected</th>
+<th>Latency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>Callback removal (API or direct memory)</td>
+<td>~2s (next poll cycle)</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Callback silencing (no-op replacement)</td>
+<td>≤10s (liveness window)</td>
+</tr>
+<tr>
+<td>B+</td>
+<td>Persistent attack (driver resident, callbacks dead)</td>
+<td>≤10s</td>
+</tr>
+<tr>
+<td>C</td>
+<td>Load-exploit-unload lifecycle</td>
+<td>≤1.5s (next poll)</td>
+</tr>
+<tr>
+<td>Canary Kill</td>
+<td>Adversary targeting canaries before EDR</td>
+<td>≤1s (alert mode polling)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="73-full-validation-scenario---winiosys">7.3 Full Validation Scenario - winio.sys</h3>
+<pre class="hljs"><code><div>T=0ms     winio.sys loaded from non-standard path (OneDrive\Desktop)
+          Risk=135, Category=PHYSICAL_MEMORY
+          -&gt; Alert dispatched to 3 canaries simultaneously
+
+T=0ms     All 3 canaries: ALERT RECEIVED
+          Baseline captured: ProcessEvents=18, ImageEvents=1
+          Callback watch activated, Driver watch activated
+
+T=0ms     Signal A: all 3 callbacks found in kernel tables 
+          (Process/Image/Thread pointers verified)
+
+T=0-10s   Liveness monitoring accumulates window
+          ProcessDelta and ImageDelta tracked per cycle
+
+T&gt;10s     If callbacks silenced: Signal B -&gt; FROZEN -&gt; votes -&gt; consensus
+          If driver unloaded rapidly: Signal C -&gt; FAST_UNLOAD -&gt; votes
+
+CONSENSUS ALERT:
+    AlertType    = ALERT_DRIVER_LOADED_CALLBACKS_DEAD (B+)
+    Votes        = 2/2
+    Signal A     = 0 (callbacks still present but silent)
+    Signal B     = 1 (liveness frozen)
+    Signal C     = 0 (driver still loaded)
+    DetectLatencyMs = ~10,000
+</div></code></pre>
+<hr>
+<h2 id="8-incident-response">8. Incident Response</h2>
+<h3 id="81-alert-taxonomy">8.1 Alert Taxonomy</h3>
+<table>
+<thead>
+<tr>
+<th>Alert Type</th>
+<th>Source</th>
+<th>Consensus Required</th>
+<th>Severity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ALERT_CALLBACK_POINTER_REMOVED</td>
+<td>CanaryMesh (Signal A)</td>
+<td>Yes (quorum)</td>
+<td>HIGH</td>
+</tr>
+<tr>
+<td>ALERT_CALLBACK_LIVENESS_FROZEN</td>
+<td>CanaryMesh (Signal B)</td>
+<td>Yes (quorum)</td>
+<td>HIGH</td>
+</tr>
+<tr>
+<td>ALERT_DRIVER_LOADED_CALLBACKS_DEAD</td>
+<td>CanaryMesh (Signal B+)</td>
+<td>Yes (quorum)</td>
+<td>CRITICAL</td>
+</tr>
+<tr>
+<td>ALERT_DRIVER_UNLOADED_FAST</td>
+<td>CanaryMesh (Signal C)</td>
+<td>Yes (quorum)</td>
+<td>HIGH</td>
+</tr>
+<tr>
+<td>ALERT_CANARY_PEER_DEAD</td>
+<td>CanaryMesh (Heartbeat)</td>
+<td>Yes (quorum)</td>
+<td>MEDIUM</td>
+</tr>
+<tr>
+<td>ALERT_QUORUM_LOST</td>
+<td>CanaryMesh (Heartbeat)</td>
+<td>No</td>
+<td>CRITICAL</td>
+</tr>
+<tr>
+<td>ALERT_PREEMPTIVE_CANARY_KILL</td>
+<td>DetectorOne (Canary Monitor)</td>
+<td><strong>No</strong></td>
+<td>CRITICAL</td>
+</tr>
+<tr>
+<td>PRE_LOAD_BLOCK</td>
+<td>DetectorOne (CmCallback)</td>
+<td>N/A - preventive</td>
+<td>CRITICAL</td>
+</tr>
+</tbody>
+</table>
+<h3 id="82-alert-content">8.2 Alert Content</h3>
+<p>Each collegial consensus alert includes:</p>
+<pre class="hljs"><code><div>AlertType        : Signal identifier
+DetectedSignals  : Bitmask of all contributing signals
+Votes            : N/Quorum at consensus time
+Driver           : Suspect driver full path
+RiskScore        : IAT-computed composite score
+PrimitiveCategory: Classifier output
+Signal A         : Callback pointer presence (0/1)
+Signal B         : Liveness counter frozen (0/1)
+Signal C         : Driver unloaded (0/1)
+CallbackLossMs   : Time from driver load to callback loss
+DriverDurationMs : Total driver residence time
+DetectLatencyMs  : Time from alert activation to consensus
+ActiveCanaries   : Alive canary count at consensus
+</div></code></pre>
+<h3 id="83-response-actions-by-category">8.3 Response Actions by Category</h3>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Immediate Action</th>
+<th>Secondary Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PROCESS_KILLER</td>
+<td>Block pre-load</td>
+<td>Log with full IAT profile</td>
+</tr>
+<tr>
+<td>PHYSICAL_MEMORY</td>
+<td>Activate canaries</td>
+<td>Attempt driver neutralization if unload fails</td>
+</tr>
+<tr>
+<td>MSR_PORT_IO</td>
+<td>Activate canaries</td>
+<td>Escalate to SIEM</td>
+</tr>
+<tr>
+<td>COMBO</td>
+<td>Block pre-load</td>
+<td>Activate canaries + immediate SIEM alert</td>
+</tr>
+<tr>
+<td>PREEMPTIVE_CANARY_KILL</td>
+<td>Immediate SIEM alert</td>
+<td>Forensic capture</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="9-security-analysis">9. Security Analysis</h2>
+<h3 id="91-known-limitations">9.1 Known Limitations</h3>
+<p><strong>L1 - Shared Kernel Address Space</strong>
+All KratosEDR components operate in VTL0 kernel space. An adversary with sufficient patience and Ring 0 access can in principle locate and neutralize any component. KratosEDR increases the cost of this neutralization; it cannot eliminate the possibility.</p>
+<p><strong>L2 - Polling Latency</strong>
+Signal B has a configurable 10-second liveness window. Signal C polls every 1.5 seconds. Attacks completing within these windows may not be detected before their objective is achieved. Signal A (near-zero latency for direct pointer removal) partially compensates.</p>
+<p><strong>L3 - Callback Table Location Fragility</strong>
+Signal A's table location relies on LEA opcode scanning of exported functions. Windows kernel updates may change these code paths. Signal B serves as automatic fallback.</p>
+<p><strong>L4 - Bootstrap Window</strong>
+Between system boot and canary activation (~700ms), no P2P canary monitoring exists. Pre-load blocking (CmRegisterCallback) remains active throughout this window.</p>
+<p><strong>L5 - No Out-of-Band Channel</strong>
+If both DetectorOne and all canaries are neutralized simultaneously, no telemetry reaches the backend. An independent cloud-side heartbeat (expected telemetry volume monitoring) would eliminate this residual gap.</p>
+<h3 id="92-attack-cost-analysis">9.2 Attack Cost Analysis</h3>
+<p>KratosEDR's primary claim is cost increase, not impossibility. The architecture imposes:</p>
+<table>
+<thead>
+<tr>
+<th>Attack Requirement</th>
+<th>Without KratosEDR</th>
+<th>With KratosEDR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pre-exploitation reconnaissance</td>
+<td>None</td>
+<td>Must identify 3+ canary drivers</td>
+</tr>
+<tr>
+<td>Neutralization targets</td>
+<td>1 (EDR process/driver)</td>
+<td>4+ (EDR + 3 canaries)</td>
+</tr>
+<tr>
+<td>Sequential attack feasibility</td>
+<td>Trivial</td>
+<td>Triggers detection at each step</td>
+</tr>
+<tr>
+<td>Simultaneous attack feasibility</td>
+<td>N/A</td>
+<td>Requires perfect coordination on unknown targets</td>
+</tr>
+<tr>
+<td>Commoditized tool effectiveness</td>
+<td>High</td>
+<td>Degraded (tools target known patterns)</td>
+</tr>
+</tbody>
+</table>
+<p>This cost increase is meaningful against the threat actors using $70-300 commoditized tools optimized for speed and automation. It imposes significant friction without claiming to stop a nation-state adversary with unlimited time and resources.</p>
+<h3 id="93-systems-theory-perspective">9.3 Systems Theory Perspective</h3>
+<p>Applying Meadows' systems thinking framework: KratosEDR implements a <strong>second-order feedback loop</strong> - a loop that monitors the state of the detection loops themselves. This meta-level monitoring property means:</p>
+<ul>
+<li>The system does not merely react to events (driver loaded, callback missing).</li>
+<li>It adapts based on the behavior of its own monitoring components (canary health degradation during alert phase).</li>
+<li>No attack sequence is silent: every strategy the adversary chooses activates a different detection path.</li>
+</ul>
+<p>This represents a fundamentally different architectural posture from point-in-time detection.</p>
+<hr>
+<h2 id="10-evaluation">10. Evaluation</h2>
+<h3 id="101-test-environment">10.1 Test Environment</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OS</td>
+<td>Windows 11 22H2 x64</td>
+</tr>
+<tr>
+<td>Hypervisor</td>
+<td>VMware Workstation 17</td>
+</tr>
+<tr>
+<td>Test Signing</td>
+<td>Enabled</td>
+</tr>
+<tr>
+<td>Monitoring</td>
+<td>DebugView (kernel DbgPrint)</td>
+</tr>
+<tr>
+<td>Test Drivers</td>
+<td>winio.sys, k7rkscan.sys</td>
+</tr>
+</tbody>
+</table>
+<h3 id="102-bootstrap-validation">10.2 Bootstrap Validation</h3>
+<p><strong>From empirical dump:</strong></p>
+<pre class="hljs"><code><div>[DetectorOne] Device created: \Device\KratosEDR
+[DetectorOne] Callbacks registered
+[DetectorOne] Bootstrap: launching 3 canaries Quorum=2
+
+[CanaryMesh3] DriverEntry -&gt; Registered -&gt; Baseline captured (3 tables)
+[CanaryMesh2] DriverEntry -&gt; Registered -&gt; Baseline captured (3 tables)
+[CanaryMesh1] DriverEntry -&gt; Registered -&gt; Baseline captured (3 tables)
+
+[DetectorOne] Bootstrap: all canaries registered Count=3
+[DetectorOne] Handoff complete: Canaries=3 Quorum=2 - P2P mode active
+[DetectorOne] Loaded
+</div></code></pre>
+<p><strong>Baseline verification (Signal A at startup):</strong></p>
+<pre class="hljs"><code><div>ProcessCallback = FFFFF80315CF1740 -&gt; found in table at FFFFF8037F105880 
+ImageCallback   = FFFFF80315CF20F0 -> found in table at FFFFF8037F105680 
+ThreadCallback  = FFFFF80315CF1950 -> found in table at FFFFF8037F105480 
+</div></code></pre>
+<p>Three distinct kernel tables located and verified for all three canaries.</p>
+<h3 id="103-detection-results">10.3 Detection Results</h3>
+<table>
+<thead>
+<tr>
+<th>Driver</th>
+<th>Category</th>
+<th>Risk Score</th>
+<th>Detection Method</th>
+<th>Action</th>
+<th>Latency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>k7rkscan.sys</td>
+<td>PROCESS_KILLER</td>
+<td>315</td>
+<td>Pre-load block</td>
+<td>Driver never loaded</td>
+<td>&lt;1ms</td>
+</tr>
+<tr>
+<td>winio.sys</td>
+<td>PHYSICAL_MEMORY</td>
+<td>135</td>
+<td>Signal B+ (persistent)</td>
+<td>Consensus alert</td>
+<td>~28,000ms</td>
+</tr>
+<tr>
+<td>winio.sys (rapid unload)</td>
+<td>PHYSICAL_MEMORY</td>
+<td>135</td>
+<td>Signal C</td>
+<td>Consensus alert</td>
+<td>~4,800ms</td>
+</tr>
+</tbody>
+</table>
+<h3 id="104-winiosys-detection-timeline">10.4 winio.sys Detection Timeline</h3>
+<pre class="hljs"><code><div>T=0ms       winio.sys loaded from non-standard path
+T=0ms       Risk=135 computed, Category=PHYSICAL_MEMORY
+T=0ms       Alert dispatched to 3 canaries
+T=0ms       All 3 canaries: ALERT RECEIVED
+            Baseline: ProcessEvents=18, ImageEvents=1
+            Signal A: all callbacks verified present 
+
+T+2,014ms   Liveness OK  ProcessDelta=0  ImageDelta=0 (window starts)
+T+60,018ms  Liveness OK  ProcessDelta=33 ImageDelta=0 (activity resets window)
+            [Machine activity: VS Code, Windows Update, Defender]
+T+2,002ms   Window restarts after last activity
+T+10,030ms  Liveness FROZEN -&gt; Signal B triggered
+            SIGNAL B+: PERSISTENT ATTACK (driver still loaded)
+
+T+28,403ms  CONSENSUS ALERT:
+            Type=ALERT_DRIVER_LOADED_CALLBACKS_DEAD
+            Votes=2/2, DetectLatencyMs=28,403
+</div></code></pre>
+<p>The 28-second latency reflects a machine with sustained background activity (Windows Update, Defender scans) continuously resetting the liveness window. On a quieter machine, latency was consistently 10-12 seconds.</p>
+<h3 id="105-performance-overhead">10.5 Performance Overhead</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>CPU (idle)</th>
+<th>CPU (alert)</th>
+<th>Memory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DetectorOne callbacks</td>
+<td>&lt;0.1%</td>
+<td>&lt;0.1%</td>
+<td>~2MB</td>
+</tr>
+<tr>
+<td>IAT analysis per load</td>
+<td>N/A</td>
+<td>3-8ms/event</td>
+<td>Transient</td>
+</tr>
+<tr>
+<td>3× CanaryMesh (idle)</td>
+<td>&lt;0.05% each</td>
+<td>&lt;0.2% each</td>
+<td>~500KB each</td>
+</tr>
+<tr>
+<td>Shared KRATOS_CANARY_TABLE</td>
+<td>0</td>
+<td>0</td>
+<td>~64KB</td>
+</tr>
+<tr>
+<td>Canary Monitor Thread</td>
+<td>&lt;0.02%</td>
+<td>&lt;0.1%</td>
+<td>Negligible</td>
+</tr>
+</tbody>
+</table>
+<p>Total steady-state overhead: <strong>&lt;0.3% CPU, ~4MB memory</strong>.</p>
+<h3 id="106-false-positive-analysis">10.6 False Positive Analysis</h3>
+<p>Legitimate high-IAT-score drivers (OEM hardware monitoring, diagnostic tools with <code>MmMapIoSpace</code> or MSR access) correctly avoid false blocking when:</p>
+<ul>
+<li>Signed by a known OEM vendor</li>
+<li>Loaded from <code>System32\drivers</code></li>
+<li>Loaded by <code>services.exe</code> as part of system initialization</li>
+<li>Without companion suspicious process context</li>
+</ul>
+<p>Liveness false positives (Signal B): in testing on active Windows 11 workloads, no false triggers were observed. The requirement for both <code>ProcessEventCounter</code> and <code>ImageEventCounter</code> to simultaneously show zero delta for the full 10-second window provides effective noise immunity on loaded machines.</p>
+<hr>
+<h2 id="11-discussion">11. Discussion</h2>
+<h3 id="111-the-adversary-information-asymmetry-as-a-security-primitive">11.1 The Adversary Information Asymmetry as a Security Primitive</h3>
+<p>This paper formalizes a defensive primitive that appears informally in threat intelligence but has not been systematically characterized: the epistemic constraint an adversary faces when operating in an unfamiliar environment, even with elevated privileges.</p>
+<p>This asymmetry has three components:</p>
+<ol>
+<li><strong>Identification cost</strong>: identifying security canaries among legitimate OEM drivers requires active enumeration.</li>
+<li><strong>Enumeration observability</strong>: enumeration generates signals observable by the system being surveilled.</li>
+<li><strong>Temporal constraint</strong>: thorough reconnaissance is incompatible with the operational tempo of automated BYOVD tools.</li>
+</ol>
+<p>Architectures that increase identification cost (more canaries, diverse implementations, authentic-looking names) directly increase the minimum time an adversary must spend before acting effectively. This time creates detection opportunities even if no individual signal is definitive.</p>
+<h3 id="112-bidirectional-surveillance-as-architectural-principle">11.2 Bidirectional Surveillance as Architectural Principle</h3>
+<p>The bidirectional surveillance - DetectorOne monitoring canary health while canaries monitor DetectorOne - eliminates the sequential attack vector. It creates what systems theory describes as a second-order feedback loop: a mechanism that monitors the state of the monitoring mechanisms themselves.</p>
+<p>This principle generalizes beyond BYOVD: any security architecture where an adversary can enumerate and sequentially neutralize independent monitoring components benefits from a meta-level monitoring layer.</p>
+<h3 id="113-pre-load-blocking-vs-post-load-detection">11.3 Pre-Load Blocking vs. Post-Load Detection</h3>
+<p>The introduction of pre-load blocking at the registry level represents a fundamental architectural shift from the original KratosEDR design. For drivers with unambiguous capability profiles (PROCESS_KILLER, COMBO), prevention is strictly superior to detection: zero exploitation window, no dependency on canary consensus latency, no risk of the attacker completing their objective before detection.</p>
+<p>Detection (via CanaryMesh) remains appropriate for PHYSICAL_MEMORY and MSR drivers, where legitimate use cases exist and blocking could cause false positives on legitimate hardware monitoring tools.</p>
+<hr>
+<h2 id="12-proof-of-concept">12. Proof of Concept</h2>
+<p>
+<img src="img/zYon9RiFQH.png" alt="Proof of concept">
+
+<hr></hr>
+<img src="img/ou8mKbSoOm.png" alt="Proof of concept">
+<hr></hr>
+<img src="img/xWGoWRJbr2.png" alt="Proof of concept"></p>
+<hr>
+<h2 id="13-conclusion">13. Conclusion</h2>
+<p>KratosEDR demonstrates that meaningful resilience against BYOVD-based EDR blinding is achievable without VBS, HVCI, or specialized hardware - on standard Windows 10/11 endpoints, within a 1-second bootstrap window, with sub-0.3% steady-state CPU overhead.</p>
+<p>The architecture's core contribution is not any individual detection mechanism but the architectural posture it embodies: <strong>an adversary with Ring 0 privileges in an unfamiliar environment cannot construct a silent attack sequence</strong>. Every strategy - neutralize the EDR first, neutralize canaries first, or attempt both simultaneously - activates a different detection path. The system does not merely react to events; it monitors the health of its own monitoring capabilities, adapting its vigilance based on threat context.</p>
+<p>The Adversary Information Asymmetry Principle, formally characterized here for the first time, provides a theoretical foundation for this architecture and suggests a general design principle for resilient security systems: exploit the adversary's epistemic constraints as actively as they exploit your technical limitations.</p>
+<p>Empirical validation against real LOLDrivers (winio.sys, k7rkscan.sys) with documented detection timelines, consensus mechanisms, and clean shutdown behavior demonstrates that this architecture is implementable and functional today, with the detection properties claimed.</p>
+<hr>
+<h2 id="references">References</h2>
+<ol>
+<li>Microsoft Security Blog. &quot;Introducing Kernel Data Protection.&quot; July 2020.</li>
+<li>CrowdStrike Intelligence. &quot;SCATTERED SPIDER Exploits BYOVD Tactic.&quot; 2023.</li>
+<li>CrowdStrike. &quot;Falcon vs. Six Vulnerable Drivers.&quot; September 2024.</li>
+<li>Palo Alto Unit 42. &quot;EDR Bypass Extortion Attempt Thwarted.&quot; November 2024.</li>
+<li>ESET Research. &quot;GentleKiller: Modular EDR Killer Framework.&quot; June 2026.</li>
+<li>Sophos X-Ops. &quot;RansomHub and the Shared Secret EDR Killer.&quot; August 2025.</li>
+<li>Cisco Talos. &quot;Exploring Vulnerable Windows Drivers.&quot; January 2025.</li>
+<li>Springer. &quot;BYOVD Detector: Symbolic Execution for Driver Vulnerability Detection.&quot; May 2026.</li>
+<li>Huntress Labs. &quot;EnCase Driver BYOVD.&quot; February 2026.</li>
+<li>Microsoft. &quot;Windows Vulnerable Driver Blocklist.&quot; Updated December 2024.</li>
+<li>LOLDrivers Project. https://www.loldrivers.io</li>
+<li>Meadows, D. &quot;Thinking in Systems: A Primer.&quot; Chelsea Green Publishing, 2008.</li>
+<li>Tulach, S. &quot;VBS Enclaves for Anti-Cheat Purposes.&quot; 2024.</li>
+</ol>
+  <footer class="site-footer">
+      Simon Ngoy : Security Researcher / Red Team / Windows Internals
+  </footer>
+  <script>
+    window.addEventListener('scroll', () => {
+        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (winScroll / height) * 100;
+        const bar = document.getElementById('progress-bar');
+        if(bar) bar.style.width = scrolled + '%';
+    });
+  </script>
+</body>
+</html>
