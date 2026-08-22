@@ -6,250 +6,877 @@
 <title>KratosEDR - Defending the Defender: A Distributed Canary Architecture for Resilient EDR Sensors Against BYOVD</title>
 
 <style>
-  :root {
-    --bg-color: #0d1117;
-    --text-color: #c9d1d9;
-    --heading-color: #f0f6fc;
-    --link-color: #58a6ff;
-    --border-color: #30363d;
-    --code-bg: #161b22;
-    --code-color: #e6edf3;
-    --blockquote-border: #30363d;
-    --table-border: #30363d;
-    --table-stripe: #161b22;
-  }
-  
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 16px;
-    line-height: 1.6;
-    color: var(--text-color);
-    background-color: var(--bg-color);
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 40px 20px;
-    word-wrap: break-word;
-  }
+        :root {
+            --bg-color: #0d1117;
+            --text-color: #c9d1d9;
+            --heading-color: #f0f6fc;
+            --link-color: #58a6ff;
+            --border-color: #30363d;
+            --code-bg: #161b22;
+            --code-color: #e6edf3;
+            --blockquote-border: #30363d;
+            --table-border: #30363d;
+            --table-stripe: #161b22;
+        }
 
-  h1, h2, h3, h4 {
-    color: var(--heading-color);
-    font-weight: 600;
-    margin-top: 32px;
-    margin-bottom: 16px;
-  }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            font-size: 17px;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #0d1117;
+            color: #f0f6fc;
+            line-height: 1.75;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            width: 0%;
+            background: #58a6ff;
+            z-index: 999;
+            transition: width 0.1s linear;
+        }
+        
+        .site-header {
+            border-bottom: 1px solid #30363d;
+            padding: 0 2rem;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: #0d1117;
+            z-index: 100;
+        }
+        
+        .site-logo {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-weight: 500;
+            font-size: 0.95rem;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            color: #f0f6fc;
+            text-transform: uppercase;
+        }
+        
+        .site-nav {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .site-nav a {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.82rem;
+            font-weight: 400;
+            color: #8b949e;
+            text-decoration: none;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        
+        .site-nav a:hover {
+            color: #f0f6fc;
+        }
+        
+        .page-wrap {
+            max-width: 740px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        
+        .article-header {
+            padding: 3.5rem 0 2rem;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 2.5rem;
+        }
+        
+        .article-header h1 {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 2rem;
+            font-weight: 600;
+            line-height: 1.3;
+            letter-spacing: -0.02em;
+            color: #f0f6fc;
+            margin-bottom: 1rem;
+        }
+        
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+        
+        .author-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #58a6ff, #8e44ad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        
+        .author-info {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.85rem;
+            color: #8b949e;
+        }
+        
+        .author-info strong {
+            color: #f0f6fc;
+            font-weight: 500;
+        }
+        
+        .meta-sep {
+            color: #8b949e;
+            margin: 0 0.25rem;
+        }
+        
+        .toc-block {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 1.25rem 1.5rem;
+            margin: 2rem 0 2.5rem;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.875rem;
+        }
+        
+        .toc-block .toc-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+            color: #8b949e;
+            margin-bottom: 0.75rem;
+        }
+        
+        .toc-block ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .toc-block>ul>li {
+            padding: 0.2rem 0;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .toc-block>ul>li:last-child {
+            border-bottom: none;
+        }
+        
+        .toc-block ul ul {
+            padding-left: 1rem;
+            margin-top: 0.15rem;
+        }
+        
+        .toc-block ul ul li {
+            padding: 0.1rem 0;
+            font-size: 0.82rem;
+            color: #8b949e;
+        }
+        
+        .toc-block a {
+            color: #c9d1d9;
+            text-decoration: none;
+        }
+        
+        .toc-block a:hover {
+            color: #58a6ff;
+            text-decoration: underline;
+        }
+        
+        h2 {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 1.45rem;
+            font-weight: 600;
+            color: #f0f6fc;
+            margin: 3rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #30363d;
+            letter-spacing: -0.01em;
+        }
+        
+        h2 .anchor {
+            color: #8b949e;
+            text-decoration: none;
+            font-size: 1rem;
+            margin-left: 0.4rem;
+            vertical-align: middle;
+        }
+        
+        h2 .anchor:hover {
+            color: #58a6ff;
+        }
+        
+        h3 {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #f0f6fc;
+            margin: 2rem 0 0.6rem;
+            letter-spacing: -0.005em;
+        }
+        
+        h4 {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #c9d1d9;
+            margin: 1.5rem 0 0.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        
+        p {
+            margin-bottom: 1.2rem;
+            color: #c9d1d9;
+            font-size: 1rem;
+        }
+        
+        strong {
+            font-weight: 600;
+            color: #f0f6fc;
+        }
+        
+        em {
+            font-style: italic;
+        }
+        
+        a {
+            color: #58a6ff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        code {
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+            font-size: 0.8rem;
+            background: #161b22;
+            color: #58a6ff;
+            padding: 0.1em 0.35em;
+            border-radius: 3px;
+            border: 1px solid #30363d;
+        }
+        
+        .code-wrap {
+            margin: 1.5rem 0;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #1e1e1e;
+        }
+        
+        .code-wrap-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background: #2d2d2d;
+            border-bottom: 1px solid #c9d1d9;
+        }
+        
+        .code-lang-label {
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+            font-size: 0.7rem;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        
+        .code-dots {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .cd {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+        
+        .cd-r {
+            background: #ff5f57;
+        }
+        
+        .cd-y {
+            background: #febc2e;
+        }
+        
+        .cd-g {
+            background: #28c840;
+        }
+        
+        pre {
+            padding: 1.1rem 1.25rem;
+            overflow-x: auto;
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+            font-size: 0.78rem;
+            line-height: 1.65;
+            color: #cdd6f4;
+        }
+        
+        pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            color: inherit;
+            font-size: inherit;
+        }
+        
+        .kw {
+            color: #ff79c6;
+        }
+        
+        .fn {
+            color: #50fa7b;
+        }
+        
+        .str {
+            color: #f1fa8c;
+        }
+        
+        .num {
+            color: #bd93f9;
+        }
+        
+        .cmt {
+            color: #6272a4;
+            font-style: italic;
+        }
+        
+        .tp {
+            color: #8be9fd;
+        }
+        
+        .mac {
+            color: #ffb86c;
+        }
+        
+        .term-wrap {
+            margin: 1.5rem 0;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #0d0d0d;
+        }
+        
+        .term-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #f0f6fc;
+            border-bottom: 1px solid #c9d1d9;
+        }
+        
+        .term-title {
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+            font-size: 0.7rem;
+            color: #8b949e;
+            margin-left: 0.3rem;
+        }
+        
+        .term-wrap pre {
+            color: #d4d4d4;
+            background: #0d0d0d;
+        }
+        
+        .t-ok {
+            color: #4ec9b0;
+        }
+        
+        .t-hit {
+            color: #f44747;
+            font-weight: 700;
+        }
+        
+        .t-dim {
+            color: #8b949e;
+        }
+        
+        .t-cmd {
+            color: #dcdcaa;
+        }
+        
+        blockquote {
+            border-left: 3px solid #58a6ff;
+            margin: 1.5rem 0;
+            padding: 0.75rem 1.25rem;
+            background: #161b22;
+            font-style: italic;
+            color: #c9d1d9;
+            font-size: 0.95rem;
+        }
+        
+        blockquote strong {
+            color: #58a6ff;
+            font-style: normal;
+        }
+        
+        .note-box {
+            border: 1px solid #30363d;
+            border-left: 3px solid #58a6ff;
+            background: #161b22;
+            padding: 0.75rem 1.25rem;
+            margin: 1.5rem 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.88rem;
+            color: #c9d1d9;
+        }
+        
+        .note-box .note-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+            color: #58a6ff;
+            margin-bottom: 0.3rem;
+        }
+        
+        .warn-box {
+            border: 1px solid #30363d;
+            border-left: 3px solid #58a6ff;
+            background: #161b22;
+            padding: 0.75rem 1.25rem;
+            margin: 1.5rem 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.88rem;
+            color: #c9d1d9;
+        }
+        
+        .warn-box .warn-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+            color: #58a6ff;
+            margin-bottom: 0.3rem;
+        }
+        
+        .gold-box {
+            border: 1px solid #30363d;
+            border-left: 3px solid #d2a8ff;
+            background: #161b22;
+            padding: 0.75rem 1.25rem;
+            margin: 1.5rem 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.88rem;
+            color: #c9d1d9;
+        }
+        
+        .gold-box .gold-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+            color: #d2a8ff;
+            margin-bottom: 0.3rem;
+        }
+        
+                table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
 
-  h1 { 
-    font-size: 2rem; 
-    font-weight: 600;
-    line-height: 1.3;
-    letter-spacing: -0.02em;
-    border-bottom: none; 
-    padding-bottom: 0; 
-  }
+        th, td {
+            border: 1px solid var(--table-border);
+            padding: 8px 12px;
+            text-align: left;
+        }
 
-  h2 { 
-    font-size: 1.5em; 
-    border-bottom: 1px solid var(--border-color); 
-    padding-bottom: 0.3em; 
-  }
+        th {
+            background-color: var(--code-bg);
+            color: var(--heading-color);
+        }
 
-  h3 { 
-    font-size: 1.25em; 
-  }
-
-  a { 
-    color: var(--link-color); 
-    text-decoration: none; 
-  }
-
-  a:hover { 
-    text-decoration: underline; 
-  }
-
-  hr { 
-    border: 0; 
-    height: 1px; 
-    background: var(--border-color); 
-    margin: 30px 0; 
-  }
-
-  ul, ol { 
-    padding-left: 2em; 
-  }
-
-  li { 
-    margin-bottom: 0.5em; 
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
-  }
-
-  th, td {
-    border: 1px solid var(--table-border);
-    padding: 8px 12px;
-    text-align: left;
-  }
-
-  th {
-    background-color: var(--code-bg);
-    color: var(--heading-color);
-  }
-
-  tr:nth-child(even) {
-    background-color: var(--table-stripe);
-  }
-
-  blockquote {
-    margin: 0 0 20px 0;
-    padding: 0 1em;
-    color: #8b949e;
-    border-left: 0.25em solid var(--blockquote-border);
-  }
-
-  code {
-    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
-    font-size: 85%;
-    padding: 0.2em 0.4em;
-    margin: 0;
-    background-color: rgba(110,118,129,0.4);
-    border-radius: 6px;
-  }
-
-  pre {
-    background-color: var(--code-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 16px;
-    overflow: auto;
-    font-size: 85%;
-    line-height: 1.45;
-  }
-
-  pre code {
-    background-color: transparent;
-    padding: 0;
-    color: var(--code-color);
-  }
-
-  img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 20px auto;
-    border-radius: 6px;
-  }
-
-  /* Syntax Highlighting */
-  .hljs-comment, .hljs-quote { color: #8b949e; font-style: italic; }
-  .hljs-variable, .hljs-template-variable, .hljs-tag, .hljs-name, .hljs-selector-id, .hljs-selector-class, .hljs-regexp, .hljs-deletion { color: #ff7b72; }
-  .hljs-number, .hljs-built_in, .hljs-builtin-name, .hljs-literal, .hljs-type, .hljs-params, .hljs-meta, .hljs-link { color: #79c0ff; }
-  .hljs-attribute { color: #d2a8ff; }
-  .hljs-string, .hljs-symbol, .hljs-bullet, .hljs-addition { color: #a5d6ff; }
-  .hljs-title, .hljs-section { color: #d2a8ff; font-weight: bold; }
-  .hljs-keyword, .hljs-selector-tag { color: #ff7b72; }
-  .hljs-emphasis { font-style: italic; }
-  .hljs-strong { font-weight: bold; }
-
-  /* ── Site Header ── */
-  #progress-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 2px;
-      width: 0%;
-      background: #58a6ff;
-      z-index: 999;
-      transition: width 0.1s linear;
-  }
-  .site-header {
-      border-bottom: 1px solid var(--border-color);
-      padding: 0 2rem;
-      height: 52px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      background: var(--bg-color);
-      z-index: 100;
-  }
-  .site-logo {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      font-weight: 600;
-      font-size: 0.95rem;
-      letter-spacing: 0.04em;
-      text-decoration: none;
-      color: var(--heading-color);
-      text-transform: uppercase;
-  }
-  .site-nav {
-      display: flex;
-      gap: 2rem;
-  }
-  .site-nav a {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      font-size: 0.82rem;
-      font-weight: 400;
-      color: #8b949e;
-      text-decoration: none;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-  }
-  .site-nav a:hover {
-      color: var(--heading-color);
-  }
-  .site-nav a.active {
-      color: var(--link-color);
-  }
-
-  /* ── Article Meta ── */
-  .article-meta {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-top: 1.25rem;
-  }
-  .author-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #58a6ff, #d2a8ff);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      font-weight: 700;
-      font-size: 0.75rem;
-      color: #fff;
-      flex-shrink: 0;
-  }
-  .author-info {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      font-size: 0.85rem;
-      color: #8b949e;
-  }
-  .author-info strong {
-      color: #f0f6fc;
-      font-weight: 500;
-  }
-  .meta-sep {
-      color: #8b949e;
-      margin: 0 0.25rem;
-  }
-
-  /* ── Footer ── */
-  .site-footer {
-      margin-top: 4rem;
-      padding: 2rem 1.5rem;
-      border-top: 1px solid var(--border-color);
-      font-size: 0.8rem;
-      color: #8b949e;
-      text-align: center;
-  }
-</style>
+        tr:nth-child(even) {
+            background-color: var(--table-stripe);
+        }
+        
+        .td-code {
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+            font-size: 0.78rem;
+            color: #58a6ff;
+            font-weight: 600;
+        }
+        
+        .td-max {
+            color: #58a6ff;
+            font-weight: 700;
+        }
+        
+        .td-high {
+            color: #d68910;
+            font-weight: 700;
+        }
+        
+        .td-low {
+            color: #27ae60;
+            font-weight: 700;
+        }
+        
+        .steps-list {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+            counter-reset: step;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        .steps-list li {
+            counter-increment: step;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid #30363d;
+            font-size: 0.9rem;
+        }
+        
+        .steps-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .steps-list li::before {
+            content: counter(step, decimal-leading-zero);
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+            font-size: 0.75rem;
+            color: #58a6ff;
+            font-weight: 700;
+            flex-shrink: 0;
+            width: 24px;
+            margin-top: 0.1rem;
+        }
+        
+        .steps-list li strong {
+            display: block;
+            color: #f0f6fc;
+            font-size: 0.88rem;
+        }
+        
+        .steps-list li span {
+            color: #8b949e;
+        }
+        /* PE layout */
+        
+        .pe-compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        .pe-col-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+            color: #8b949e;
+            margin-bottom: 0.6rem;
+        }
+        
+        .pe-section {
+            border-radius: 3px;
+            padding: 0.5rem 0.8rem;
+            margin: 2px 0;
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+        
+        .pe-green {
+            background: #161b22;
+            border: 1px solid #2ea043;
+            color: #3fb950;
+        }
+        
+        .pe-red {
+            background: #161b22;
+            border: 1px solid #f85149;
+            color: #ff7b72;
+        }
+        
+        .pe-red-s {
+            background: #58a6ff;
+            border: 1px solid #f85149;
+            color: #fff;
+        }
+        
+        .pe-note {
+            font-size: 0.72rem;
+            color: #999;
+            font-style: italic;
+            float: right;
+        }
+        /* Mapping chain */
+        
+        .map-chain {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        .map-node {
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 0.65rem 1rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-align: center;
+            flex: 1;
+            background: #0d1117;
+        }
+        
+        .map-node .mn-label {
+            font-size: 0.68rem;
+            color: #8b949e;
+            font-weight: 400;
+            display: block;
+            margin-bottom: 0.15rem;
+            text-transform: uppercase;
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+        }
+        
+        .map-node.file {
+            border-color: #58a6ff;
+            background: #161b22;
+            color: #79c0ff;
+        }
+        
+        .map-node.kernel {
+            border-color: #d2a8ff;
+            background: #161b22;
+            color: #d2a8ff;
+        }
+        
+        .map-node.mem {
+            border-color: #2ea043;
+            background: #161b22;
+            color: #3fb950;
+        }
+        
+        .map-arrow {
+            color: #8b949e;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        /* score grid */
+        
+        .score-grid {
+            margin: 1.5rem 0;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        .score-header {
+            background: #161b22;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            padding: 0.45rem 1rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #8b949e;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .score-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+        }
+        
+        .score-action {
+            padding: 0.55rem 1rem;
+            border-bottom: 1px solid #30363d;
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+            font-size: 0.78rem;
+            color: #c9d1d9;
+        }
+        
+        .score-pts {
+            padding: 0.55rem 1rem;
+            border-bottom: 1px solid #30363d;
+            font-weight: 700;
+            text-align: right;
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+            color: #58a6ff;
+        }
+        
+        .score-total {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            background: #161b22;
+            border-top: 2px solid #30363d;
+        }
+        
+        .score-total-label {
+            padding: 0.6rem 1rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #c9d1d9;
+        }
+        
+        .score-total-val {
+            padding: 0.6rem 1rem;
+            font-weight: 700;
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+            color: #58a6ff;
+        }
+        /* sec-image steps */
+        
+        .sec-steps {
+            margin: 1.5rem 0;
+        }
+        
+        .sec-step {
+            display: flex;
+            gap: 0.85rem;
+            align-items: flex-start;
+            padding: 0.65rem 0;
+            border-bottom: 1px solid #30363d;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.88rem;
+        }
+        
+        .sec-step:last-child {
+            border-bottom: none;
+        }
+        
+        .sec-num {
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+            font-size: 0.72rem;
+            color: #27ae60;
+            font-weight: 700;
+            flex-shrink: 0;
+            background: #161b22;
+            border: 1px solid #2ea043;
+            padding: 0.1rem 0.4rem;
+            border-radius: 3px;
+        }
+        
+        .sec-step p {
+            margin: 0;
+            color: #c9d1d9;
+            line-height: 1.5;
+        }
+        
+        .sec-step strong {
+            color: #f0f6fc;
+        }
+        
+        figure {
+            margin: 2rem 0;
+        }
+        
+        figure img {
+            width: 100%;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            display: block;
+        }
+        
+        figcaption {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.8rem;
+            color: #8b949e;
+            margin-top: 0.6rem;
+            font-style: italic;
+            text-align: center;
+        }
+        
+        .article-tags {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #30363d;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        .tag {
+            font-size: 0.75rem;
+            color: #8b949e;
+            background: #161b22;
+            border: 1px solid #30363d;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            text-decoration: none;
+        }
+        
+        .tag:hover {
+            background: #30363d;
+            color: #f0f6fc;
+        }
+        
+        hr {
+            border: none;
+            border-top: 1px solid #30363d;
+            margin: 2rem 0;
+        }
+        
+        .site-footer {
+            margin-top: 4rem;
+            padding: 2rem 1.5rem;
+            border-top: 1px solid #30363d;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.8rem;
+            color: #8b949e;
+            text-align: center;
+        }
+        
+        @media (max-width: 600px) {
+            .pe-compare {
+                grid-template-columns: 1fr;
+            }
+            .map-chain {
+                flex-direction: column;
+            }
+            .map-arrow {
+                transform: rotate(90deg);
+            }
+            h2 {
+                font-size: 1.25rem;
+            }
+            .article-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+        img, svg { max-width: 100%; height: auto; }
+        .mermaid { max-width: 100%; overflow-x: auto; }
+        table { display: block; overflow-x: auto; }
+    </style>
 
 <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
 </head>
@@ -262,6 +889,8 @@
           <a href="./about.html">About</a>
       </nav>
   </header>
+    <div class="page-wrap">
+
   <script>
     mermaid.initialize({
       startOnLoad: true,
@@ -269,13 +898,17 @@
     });
   </script>
 
-<h1 id="kratosedr---defending-the-defender-a-distributed-canary-architecture-for-resilient-edr-sensors-against-byovd">KratosEDR - Defending the Defender: A Distributed Canary Architecture for Resilient EDR Sensors Against BYOVD</h1>
+
+        <header class="article-header">
+            <h1 id="kratosedr---defending-the-defender-a-distributed-canary-architecture-for-resilient-edr-sensors-against-byovd">KratosEDR - Defending the Defender: A Distributed Canary Architecture for Resilient EDR Sensors Against BYOVD</h1>
 <div class="article-meta">
     <div class="author-avatar">SN</div>
     <div class="author-info">
         <strong>Simon Ngoy</strong> <span class="meta-sep">·</span> Security Researcher <span class="meta-sep">·</span> Red Team / Windows Internals
     </div>
 </div>
+        </header>
+
 <h2 id="1-introduction">1. Introduction</h2>
 <h3 id="11-the-edr-blinding-problem">1.1 The EDR Blinding Problem</h3>
 <p>Modern ransomware operations follow a consistent pre-encryption playbook: establish initial access, escalate privileges, perform lateral movement, and, most importantly, neutralize endpoint security before deploying the encryption payload. This neutralization step has evolved from crude process termination attempts to a sophisticated kernel-mode operation that systematically dismantles the monitoring infrastructure of commercial EDR products.
@@ -362,7 +995,10 @@ Full detection capability on Windows 10/11 without VBS, HVCI, TPM, or specific C
 <hr>
 <h2 id="5-architecture">5. Architecture</h2>
 <h3 id="51-high-level-overview">5.1 High-Level Overview</h3>
-<p><img src="img/schema.png" alt="alt text"></p>
+<p><figure style="margin: 2rem 0; text-align: center;">
+    <img src="img/schema.png" alt="alt text">
+    <figcaption style="color: #8b949e; font-size: 0.85rem; margin-top: 0.5rem; font-style: italic;">Figure : Architecture</figcaption>
+</figure></p>
 <h3 id="52-detectorone">5.2 DetectorOne</h3>
 <p>DetectorOne is the primary sensor component registering four kernel callbacks:</p>
 <ul>
@@ -1045,12 +1681,21 @@ T+28,403ms  CONSENSUS ALERT:
 <hr>
 <h2 id="12-proof-of-concept">12. Proof of Concept</h2>
 <p>
-<img src="img/zYon9RiFQH.png" alt="Proof of concept">
+<figure style="margin: 2rem 0; text-align: center;">
+    <img src="img/zYon9RiFQH.png" alt="Proof of concept">
+    <figcaption style="color: #8b949e; font-size: 0.85rem; margin-top: 0.5rem; font-style: italic;">Figure : Proof of concept</figcaption>
+</figure>
 
 <hr></hr>
-<img src="img/ou8mKbSoOm.png" alt="Proof of concept">
+<figure style="margin: 2rem 0; text-align: center;">
+    <img src="img/ou8mKbSoOm.png" alt="Proof of concept">
+    <figcaption style="color: #8b949e; font-size: 0.85rem; margin-top: 0.5rem; font-style: italic;">Figure : Proof of concept</figcaption>
+</figure>
 <hr></hr>
-<img src="img/xWGoWRJbr2.png" alt="Proof of concept"></p>
+<figure style="margin: 2rem 0; text-align: center;">
+    <img src="img/xWGoWRJbr2.png" alt="Proof of concept">
+    <figcaption style="color: #8b949e; font-size: 0.85rem; margin-top: 0.5rem; font-style: italic;">Figure : Proof of concept</figcaption>
+</figure></p>
 <hr>
 <h2 id="13-conclusion">13. Conclusion</h2>
 <p>KratosEDR demonstrates that meaningful resilience against BYOVD-based EDR blinding is achievable without VBS, HVCI, or specialized hardware - on standard Windows 10/11 endpoints, within a 1-second bootstrap window, with sub-0.3% steady-state CPU overhead.</p>
@@ -1058,23 +1703,27 @@ T+28,403ms  CONSENSUS ALERT:
 <p>The Adversary Information Asymmetry Principle, formally characterized here for the first time, provides a theoretical foundation for this architecture and suggests a general design principle for resilient security systems: exploit the adversary's epistemic constraints as actively as they exploit your technical limitations.</p>
 <p>Empirical validation against real LOLDrivers (winio.sys, k7rkscan.sys) with documented detection timelines, consensus mechanisms, and clean shutdown behavior demonstrates that this architecture is implementable and functional today, with the detection properties claimed.</p>
 <hr>
-<h2 id="references">References</h2>
-<ol>
-<li>Microsoft Security Blog. &quot;Introducing Kernel Data Protection.&quot; July 2020.</li>
-<li>CrowdStrike Intelligence. &quot;SCATTERED SPIDER Exploits BYOVD Tactic.&quot; 2023.</li>
-<li>CrowdStrike. &quot;Falcon vs. Six Vulnerable Drivers.&quot; September 2024.</li>
-<li>Palo Alto Unit 42. &quot;EDR Bypass Extortion Attempt Thwarted.&quot; November 2024.</li>
-<li>ESET Research. &quot;GentleKiller: Modular EDR Killer Framework.&quot; June 2026.</li>
-<li>Sophos X-Ops. &quot;RansomHub and the Shared Secret EDR Killer.&quot; August 2025.</li>
-<li>Cisco Talos. &quot;Exploring Vulnerable Windows Drivers.&quot; January 2025.</li>
-<li>Springer. &quot;BYOVD Detector: Symbolic Execution for Driver Vulnerability Detection.&quot; May 2026.</li>
-<li>Huntress Labs. &quot;EnCase Driver BYOVD.&quot; February 2026.</li>
-<li>Microsoft. &quot;Windows Vulnerable Driver Blocklist.&quot; Updated December 2024.</li>
-<li>LOLDrivers Project. https://www.loldrivers.io</li>
-<li>Meadows, D. &quot;Thinking in Systems: A Primer.&quot; Chelsea Green Publishing, 2008.</li>
-<li>Tulach, S. &quot;VBS Enclaves for Anti-Cheat Purposes.&quot; 2024.</li>
-</ol>
-  <footer class="site-footer">
+<h2 id="references">References
+    <a class="anchor" href="#references"></a>
+</h2>
+<ul>
+    <li>[1] Microsoft Security Blog. &quot;Introducing Kernel Data Protection.&quot; July 2020.</li>
+    <li>[2] CrowdStrike Intelligence. &quot;SCATTERED SPIDER Exploits BYOVD Tactic.&quot; 2023.</li>
+    <li>[3] CrowdStrike. &quot;Falcon vs. Six Vulnerable Drivers.&quot; September 2024.</li>
+    <li>[4] Palo Alto Unit 42. &quot;EDR Bypass Extortion Attempt Thwarted.&quot; November 2024.</li>
+    <li>[5] ESET Research. &quot;GentleKiller: Modular EDR Killer Framework.&quot; June 2026.</li>
+    <li>[6] Sophos X-Ops. &quot;RansomHub and the Shared Secret EDR Killer.&quot; August 2025.</li>
+    <li>[7] Cisco Talos. &quot;Exploring Vulnerable Windows Drivers.&quot; January 2025.</li>
+    <li>[8] Springer. &quot;BYOVD Detector: Symbolic Execution for Driver Vulnerability Detection.&quot; May 2026.</li>
+    <li>[9] Huntress Labs. &quot;EnCase Driver BYOVD.&quot; February 2026.</li>
+    <li>[10] Microsoft. &quot;Windows Vulnerable Driver Blocklist.&quot; Updated December 2024.</li>
+    <li>[11] LOLDrivers Project. https://www.loldrivers.io</li>
+    <li>[12] Meadows, D. &quot;Thinking in Systems: A Primer.&quot; Chelsea Green Publishing, 2008.</li>
+    <li>[13] Tulach, S. &quot;VBS Enclaves for Anti-Cheat Purposes.&quot; 2024.</li>
+</ul>
+  
+    </div>
+<footer class="site-footer">
       Simon Ngoy : Security Researcher / Red Team / Windows Internals
   </footer>
   <script>
